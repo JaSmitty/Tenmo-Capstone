@@ -64,3 +64,7 @@ INSERT INTO transfer_statuses (transfer_status_desc) VALUES ('Rejected');
 
 INSERT INTO transfer_types (transfer_type_desc) VALUES ('Request');
 INSERT INTO transfer_types (transfer_type_desc) VALUES ('Send');
+
+
+
+--SELECT account_id, users.user_id, balance, username FROM accounts inner join users on accounts.user_id = users.user_id

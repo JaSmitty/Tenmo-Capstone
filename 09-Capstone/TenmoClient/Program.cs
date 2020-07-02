@@ -1,5 +1,7 @@
-﻿using System;
+﻿using RestSharp;
+using System;
 using System.Collections.Generic;
+using System.Net;
 using TenmoClient.Data;
 
 namespace TenmoClient
@@ -8,6 +10,8 @@ namespace TenmoClient
     {
         private static readonly ConsoleService consoleService = new ConsoleService();
         private static readonly AuthService authService = new AuthService();
+        private static readonly RestClient client = new RestClient();
+        private readonly static string API_BASE_URL = "https://localhost:44315/";
 
         static void Main(string[] args)
         {
@@ -96,7 +100,10 @@ namespace TenmoClient
                 else if (menuSelection == 1)
                 {
                     // View your current balance
-
+                    RestRequest request = new RestRequest(API_BASE_URL + "balance");
+                    IRestResponse<decimal> response = client.Get<decimal>(request);
+                    CheckResponse(response);
+                    Console.WriteLine(response.Data);
                 }
                 else if (menuSelection == 2)
                 {
@@ -130,6 +137,33 @@ namespace TenmoClient
                     Console.WriteLine("Goodbye!");
                     Environment.Exit(0);
                 }
+
+
+
+            }
+
+
+        }
+
+        private static void CheckResponse(IRestResponse response)
+        {
+            if (response.ResponseStatus != ResponseStatus.Completed)
+            {
+                throw new Exception("Error occurred - unable to reach server.");
+            }
+
+            if (!response.IsSuccessful)
+            {
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    throw new Exception("Authorization is required for this option. Please log in.");
+                }
+                if (response.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    throw new Exception("You do not have permission to perform the requested action");
+                }
+
+                throw new Exception($"Error occurred - received non-success response: {response.StatusCode} ({(int)response.StatusCode})");
             }
         }
     }

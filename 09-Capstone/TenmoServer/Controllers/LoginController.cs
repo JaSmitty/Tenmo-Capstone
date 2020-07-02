@@ -44,7 +44,7 @@ namespace TenmoServer.Controllers
 
             return result;
         }
-
+        
         [HttpPost("register")]
         public IActionResult Register(LoginUser userParam)
         {
