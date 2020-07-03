@@ -52,7 +52,7 @@ namespace TenmoServer.DAO
             {
                 conn.Open();
 
-                SqlCommand cmd = new SqlCommand("SELECT * From accounts", conn);
+                SqlCommand cmd = new SqlCommand("SELECT * From accounts inner join users on accounts.user_id = users.user_id", conn);
                 SqlDataReader rdr = cmd.ExecuteReader();
 
                 if (rdr.HasRows)
@@ -77,9 +77,9 @@ namespace TenmoServer.DAO
             {
                 conn.Open();
 
-                SqlCommand cmd = new SqlCommand("UPDATE accounts set balance = @balance where account_id = @accountID", conn);
+                SqlCommand cmd = new SqlCommand("UPDATE accounts set accounts.balance = @balance from accounts inner join users on accounts.user_id = users.user_id where accounts.account_id = @accountid", conn);
                 cmd.Parameters.AddWithValue("@balance", newBalance);
-                cmd.Parameters.AddWithValue("@accountID", account.AccountID);
+                cmd.Parameters.AddWithValue("@accountid", account.AccountID);
                 int rowsAffected = cmd.ExecuteNonQuery();
                 if(rowsAffected == 1)
                 {
@@ -95,17 +95,19 @@ namespace TenmoServer.DAO
 
         private Account GetAccount(int userID)
         {
-            Account account;
+            Account account = null;
 
             using (SqlConnection conn = new SqlConnection(this.ConnectionString))
             {
                 conn.Open();
 
-                SqlCommand cmd = new SqlCommand("SELECT account_id, users.user_id, balance, username FROM accounts inner join users on accounts.user_id = users.user_id where user_id = @userID", conn);
+                SqlCommand cmd = new SqlCommand("SELECT account_id, users.user_id, balance, username FROM accounts inner join users on accounts.user_id = users.user_id where users.user_id = @userID", conn);
                 cmd.Parameters.AddWithValue("@userID", userID);
                 SqlDataReader rdr = cmd.ExecuteReader();
-
-                account = HelperAccount(rdr);
+                if (rdr.Read())
+                {
+                    account = HelperAccount(rdr);
+                }
             }
             return account;
         }

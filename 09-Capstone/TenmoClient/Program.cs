@@ -1,8 +1,10 @@
 ﻿using RestSharp;
+using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using TenmoClient.Data;
+using TenmoClient.Models;
 
 namespace TenmoClient
 {
@@ -100,7 +102,8 @@ namespace TenmoClient
                 else if (menuSelection == 1)
                 {
                     // View your current balance
-                    RestRequest request = new RestRequest(API_BASE_URL + "balance");
+                    RestRequest request = new RestRequest(API_BASE_URL + "account/balance");
+                    client.Authenticator = new JwtAuthenticator(UserService.GetToken());
                     IRestResponse<decimal> response = client.Get<decimal>(request);
                     CheckResponse(response);
                     Console.WriteLine(response.Data);
@@ -108,6 +111,14 @@ namespace TenmoClient
                 else if (menuSelection == 2)
                 {
                     // View your past transfers
+                    RestRequest request = new RestRequest(API_BASE_URL + "account/transfers");
+                    client.Authenticator = new JwtAuthenticator(UserService.GetToken());
+                    IRestResponse<List<Transfer>> response = client.Get<List<Transfer>>(request);
+                    CheckResponse(response);
+                    foreach (Transfer transfer in response.Data)
+                    {
+                        Console.WriteLine(transfer.AccountFrom);
+                    }
 
                 }
                 else if (menuSelection == 3)
@@ -118,7 +129,12 @@ namespace TenmoClient
                 else if (menuSelection == 4)
                 {
                     // Send TE bucks
+                    RestRequest request = new RestRequest(API_BASE_URL + "account/users");
+                    client.Authenticator = new JwtAuthenticator(UserService.GetToken());
+                    IRestResponse<List<Account>> response = client.Get<List<Account>>(request);
+                    CheckResponse(response);
 
+                    HelperTransfer(response.Data);
                 }
                 else if (menuSelection == 5)
                 {
@@ -165,6 +181,29 @@ namespace TenmoClient
 
                 throw new Exception($"Error occurred - received non-success response: {response.StatusCode} ({(int)response.StatusCode})");
             }
+        }
+
+        private static void HelperTransfer(List<Account> accounts)
+        {
+            Console.WriteLine("Please choose which account to send a TE buck to");
+            foreach (Account account in accounts)
+            {
+                Console.WriteLine($"{account.UserID}  {account.Username}");
+            }
+            int userid = int.Parse(Console.ReadLine());
+
+            Console.WriteLine("How much?");
+            decimal amount = decimal.Parse(Console.ReadLine());
+            Transfer transfer = new Transfer()
+            {
+                AccountTo = userid,
+                Amount = amount
+            };
+            RestRequest request = new RestRequest(API_BASE_URL + $"account/sendtransfer");
+            client.Authenticator = new JwtAuthenticator(UserService.GetToken());
+            request.AddJsonBody(transfer);
+            IRestResponse<Transfer> response = client.Post<Transfer>(request);
+            CheckResponse(response);
         }
     }
 }

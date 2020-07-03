@@ -7,7 +7,7 @@ using TenmoServer.Models;
 
 namespace TenmoServer.DAO
 {
-    interface IAccountDAO
+    public interface IAccountDAO
     {
         decimal FindBalance(int userID);
         bool WithdrawMoney(int userID, decimal amount);
