@@ -117,9 +117,11 @@ namespace TenmoClient
                     CheckResponse(response);
                     foreach (Transfer transfer in response.Data)
                     {
-                        Console.WriteLine(transfer.AccountFrom);
+                        Console.WriteLine($"{transfer.AccountFrom} {transfer.AccountTo}");
                     }
-
+                    Console.WriteLine("Please enter transfer ID for more inforamation");
+                    int transid = int.Parse(Console.ReadLine());
+                    FindIDHelper(transid);
                 }
                 else if (menuSelection == 3)
                 {
@@ -204,6 +206,15 @@ namespace TenmoClient
             request.AddJsonBody(transfer);
             IRestResponse<Transfer> response = client.Post<Transfer>(request);
             CheckResponse(response);
+        }
+
+        private static void FindIDHelper(int transferid)
+        {
+            RestRequest request = new RestRequest(API_BASE_URL + $"account/transfers/{transferid}");
+            client.Authenticator = new JwtAuthenticator(UserService.GetToken());
+            IRestResponse<Transfer> response = client.Get<Transfer>(request);
+            CheckResponse(response);
+            Console.WriteLine(response.Data.TransferID);
         }
     }
 }

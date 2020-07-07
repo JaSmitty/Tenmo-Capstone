@@ -58,12 +58,12 @@ namespace TenmoServer.DAO
 
         public List<Transfer> ListTransfers(int accountid)
         {
-            List<Transfer> transfer = null;
+            List<Transfer> transfer = new List<Transfer>();
             using (SqlConnection conn = new SqlConnection(this.ConnectionString))
             {
                 conn.Open();
                 { 
-                SqlCommand cmd = new SqlCommand("select transfer_id, transfer_type_id, transfer_status_id, account_to, account_from, amount from transfers inner join accounts on accounts.account_id = transfers.account_to where account_id = @accountid", conn);
+                SqlCommand cmd = new SqlCommand("select transfer_id, transfer_type_id, transfer_status_id, account_to, account_from, amount from transfers inner join accounts on accounts.account_id = transfers.account_to where account_to = @accountid or account_from = @accountid", conn);
                 cmd.Parameters.AddWithValue("@accountid", accountid);
                 SqlDataReader rdr = cmd.ExecuteReader();
                 while (rdr.Read())
@@ -71,20 +71,36 @@ namespace TenmoServer.DAO
                     transfer.Add(HelperTransfer(rdr));
                 }
                 }
-                {
-                    SqlCommand cmd = new SqlCommand("select transfer_id, transfer_type_id, transfer_status_id, account_to, account_from, amount from transfers inner join accounts on accounts.account_id = transfers.account_from where account_id = @accountid", conn);
-                    cmd.Parameters.AddWithValue("@accountid", accountid);
-                    SqlDataReader rdr = cmd.ExecuteReader();
-                    while (rdr.Read())
-                    {
-                        transfer.Add(HelperTransfer(rdr));
-                    }
-                }
+                //{
+                //    SqlCommand cmd = new SqlCommand("select transfer_id, transfer_type_id, transfer_status_id, account_to, account_from, amount from transfers inner join accounts on accounts.account_id = transfers.account_from where account_id = @accountid", conn);
+                //    cmd.Parameters.AddWithValue("@accountid", accountid);
+                //    SqlDataReader rdr = cmd.ExecuteReader();
+                //    while (rdr.Read())
+                //    {
+                //        transfer.Add(HelperTransfer(rdr));
+                //    }
+                //}
             }
             return transfer;
         }
 
+//        public Transfer FindTransferByID(int transferID)
+//        {
+//            Transfer transfer = new Transfer();
+//            using (SqlConnection conn = new SqlConnection(this.ConnectionString))
+//            {
+//                conn.Open();
+//                {
+//                    SqlCommand cmd = new SqlCommand("SELECT * From transfers where transfer_id = @transferid", conn);
+//                    cmd.Parameters.AddWithValue("@transferid", transferID);
+//                    SqlDataReader rdr = cmd.ExecuteReader();
+//                    rdr.Read();
+//                    transfer = HelperTransfer(rdr);
+//;               }
+//            }
+//            return transfer;
 
+//        }
         private Transfer HelperTransfer(SqlDataReader rdr)
         {
             Transfer transfer = new Transfer()
@@ -92,7 +108,8 @@ namespace TenmoServer.DAO
                 TransferID = Convert.ToInt32(rdr["transfer_id"]),
                 TransferTypeID = Convert.ToInt32(rdr["transfer_type_id"]),
                 TransferStatusID = Convert.ToInt32(rdr["transfer_status_id"]),
-                AccountTo = Convert.ToInt32(rdr["account_to"])
+                AccountTo = Convert.ToInt32(rdr["account_to"]),
+                AccountFrom = Convert.ToInt32(rdr["account_from"])
             };
             return transfer;
         }
